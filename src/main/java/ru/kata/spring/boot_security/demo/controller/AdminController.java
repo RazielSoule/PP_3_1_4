@@ -19,22 +19,14 @@ import java.security.Principal;
 @RequestMapping(value = "/admin")
 public class AdminController {
     private final UserService userService;
-    private final RoleService roleService;
 
     @Autowired
-    public AdminController(UserService userService, RoleService roleService) {
+    public AdminController(UserService userService) {
         this.userService = userService;
-        this.roleService = roleService;
     }
 
     @GetMapping
-    public String adminPanel(ModelMap model, Principal principal) {
-        //Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        //UserDetailsImp userDetails = (UserDetailsImp) authentication.;
-        model.addAttribute("activeUser", userService.getUserByUsername(principal.getName()));
-        model.addAttribute("usersList", userService.getUsers());
-        model.addAttribute("rolesList", roleService.getRoles());
-        model.addAttribute("newUser", new User());
+    public String adminPanel() {
         return "admin/admin-page";
     }
 

@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -15,26 +16,28 @@ public class User {
    private Long id;
 
    @Column(name = "name")
-   @NotNull
+   @NotEmpty(message = "Enter name!")
    private String firstName;
 
    @Column(name = "last_name")
-   @NotNull
+   @NotEmpty(message = "Enter last name!")
    private String lastName;
 
    @Column(name = "password")
-   @NotNull
+   @NotEmpty(message = "Enter password!")
    private String password;
 
    @Column(name = "email")
-   @NotNull
+   @NotEmpty(message = "Enter email!")
    private String email;
 
    @Column(name = "age")
-   @NotNull
+   @NotEmpty(message = "Enter age!")
    private int age;
 
    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+   @NotEmpty(message = "Select at least 1 role")
+   @JsonManagedReference
    @JoinTable(
          name = "users_roles",
          joinColumns = @JoinColumn(name = "user_id"),
