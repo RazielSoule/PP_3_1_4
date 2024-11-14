@@ -2,7 +2,6 @@ package ru.kata.spring.boot_security.demo.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -58,7 +57,7 @@ public class ApiController {
         if (bindingResult.hasErrors())
             throw new UserNotAddedException(errorStringBuild(bindingResult));
         userService.addUser(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping(value = "/edit-user")

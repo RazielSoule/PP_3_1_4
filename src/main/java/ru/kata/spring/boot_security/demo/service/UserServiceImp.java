@@ -59,19 +59,11 @@ public class UserServiceImp implements UserService {
    @Transactional
    @Override
    @PreAuthorize("hasRole('ROLE_ADMIN')")
-   public void updateUser(long id, User user) {
-      user.setId(id);
-      if (!user.getPassword().equals(getUser(id).getPassword()))
-         user.setPassword(passwordEncoder.encode(user.getPassword()));
-      userRepository.save(user);
-   }
-
-   @Transactional
-   @Override
-   @PreAuthorize("hasRole('ROLE_ADMIN')")
    public void updateUser(User user) {
-      if (!user.getPassword().equals(getUser(user.getId()).getPassword()))
+      if (!user.getPassword().equals(userRepository.findById(user.getId()).orElseThrow(UserNotFoundException::new).getPassword()))
          user.setPassword(passwordEncoder.encode(user.getPassword()));
+      if (user.getRoles() == null)
+         user.setRoles(userRepository.findById(user.getId()).orElseThrow(UserNotFoundException::new).getRoles());
       userRepository.save(user);
    }
 }

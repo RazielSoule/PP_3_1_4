@@ -13,10 +13,14 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
-        <div class="navbar-text text-white bg-dark h5" id="newNavbar" ></div>
-        <form th:method="POST" th:action="@{/logout}">
-            <button class="btn btn-outline-light border-0 text-secondary w-100"  type="submit">Logout</button>
-        </form>
+        <div class="navbar-text text-white bg-dark h5" id="newNavbar" >
+            В жопу javascript
+        </div>
+        <ul class="navbar-nav">
+            <li class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="/logout">Logout</a>
+            </li>
+        </ul>
     </div>
 </nav>
 <!-- ADMIN PANEL -->
@@ -102,20 +106,20 @@
                                                                                 <input type="email" class="form-control" name="email" id="editEmail">
                                                                             </div>
                                                                             <div class="form-group">
-                                                                                <label for="editPassword"  class="form-label">Password</label>
+                                                                                <label for="editPassword" class="form-label">New password</label>
                                                                                 <br>
-                                                                                <input type="password" class="form-control" name="password" id="editPassword" autocomplete="current-password">
+                                                                                <input type="password" class="form-control" name="password" id="editPassword">
                                                                             </div>
                                                                             <div class="form-group">
                                                                                 <label for="editRole" class="form-label">Role</label>
                                                                                 <br>
-                                                                                <select class="form-select form-select-sm"  id="editRole" size=2  multiple>
+                                                                                <select class="form-select form-select-sm" id="editRole" size=2 multiple>
 
                                                                                 </select>
                                                                                 <br>
                                                                             </div>
                                                                             <div class="modal-footer edit_form_buttons">
-                                                                                <button type="button"  class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                                <button type="button" id="modal-edit-close" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                                                                 <button type="submit" class="btn btn-primary" id="editBtn">Edit</button>
                                                                             </div>
                                                                         </form>
@@ -233,11 +237,10 @@
                                                         <label for="newUserRole">Role:</label>
                                                         <br>
                                                         <select class="form-select form-select-sm" size="2" id="newUserRole" multiple>
-                                                            <option value="1">ROLE_USER</option>
-                                                            <option value="2">ROLE_ADMIN</option>
+
                                                         </select>
                                                     </div>
-                                                    <button class="btn btn-success btn-save btr-lg mt-3" type="submit ">Add new user</button>
+                                                    <button class="btn btn-success btn-save btr-lg mt-3" type="submit">Add new user</button>
                                                 </form>
                                             </div>
                                         </div>
@@ -282,19 +285,35 @@
         </div>
     </div>
 </div>
+
+
 <script>
     const addBtn = document.querySelector(".add_card");
-    const formElement =document.getElementById('newUserForm');
+    const formElement = document.getElementById('newUserForm');
+    const allUsers = document.getElementById("tableUsers");
+    const asd = allUsers.innerHTML;
 
     let newUser;
     console.log('Скрипт загружен и выполняется');
     document.addEventListener('DOMContentLoaded', async function () {
         await fillTableForUsers();
         await fillTableForUser();
+        // Получаем элемент select
+        const select = document.getElementById('newUserRole');
+        const responseRoles = await fetch(`/api/get-all-roles`);
+        const roles = await responseRoles.json();
+
+        // Заполняем select
+        roles.forEach(role => {
+            const option = document.createElement('option'); // Создаем новый элемент <option>
+            option.value = role.roleName; // Устанавливаем значение
+            option.textContent = role.roleName; // Устанавливаем текст
+            select.appendChild(option); // Добавляем элемент <option> в <select>
+        });
     });
 
     function fillTableForUsers() {
-        const allUsers = document.getElementById("tableUsers");
+        allUsers.innerHTML = asd;
         fetch("api/get-all-users")
             .then(response => response.json())
             .then(data => {
@@ -304,20 +323,19 @@
                         allUsers.innerHTML +=
                             `
                           <tr>
-                          <td>${user.id}</td>
-                          <td>${user.firstName}</td>
-                          <td>${user.lastName}</td>
-                          <td>${user.age}</td>
-                          <td>${user.email}</td>
-                          <td>${roles}</td>
-                           <td>
-                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"  data-bs-target="#editModal" onclick="openEditModal(${user.id})" >Edit</button>
-                            </td>
-                            <td>
+                              <td>${user.id}</td>
+                              <td>${user.firstName}</td>
+                              <td>${user.lastName}</td>
+                              <td>${user.age}</td>
+                              <td>${user.email}</td>
+                              <td>${roles}</td>
+                              <td>
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"  data-bs-target="#editModal" onclick="openEditModal(${user.id})">Edit</button>
+                              </td>
+                              <td>
                                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"  data-bs-target="#deleteModal" onclick="openDeleteModal(${user.id})">Delete</button>
-                             </td>
-                        </td>
-                          <tr>
+                              </td>
+                          </tr>
                           `
                     })
                 } else {
@@ -359,30 +377,34 @@
 
     formElement.addEventListener("click", function (event) {
         event.preventDefault();
+
         newUser = {
             firstName: document.getElementById("newUserName").value,
             lastName: document.getElementById("newUserSurname").value,
-            age: document.getElementById("newUserAge").value,
-            email: document.getElementById("newUserEmail").value,
             password: document.getElementById("newUserPassword").value,
+            email: document.getElementById("newUserEmail").value,
+            age: document.getElementById("newUserAge").value,
             roles: Array.from(document.getElementById("newUserRole").selectedOptions).map(option => option.value)
         };
     });
 
-    function addUser(newUser) {
+    async function addUser(newUser) {
         try {
-            const response =  fetch("api/add-user", {
+            const response = await fetch("api/add-user", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(newUser)
             });
+
             if (response.ok) {
                 console.log('User added successfully');
-                formElement.reset();
-                document.querySelector('a#nav-home-tab').click();
                 fillTableForUsers();
+                formElement.reset(); // Сброс формы после успешного добавления
+                document.querySelector('a#nav-home-tab').click();
+            } else {
+                console.error('Failed to add user:', response.statusText);
             }
         } catch (error) {
             console.error('Error adding user:', error);
@@ -390,33 +412,46 @@
     }
 
     addBtn.addEventListener('click', event => {
-        if(event.target.classList.contains('btn-save')){
-            addUser(newUser);//
-            formElement.reset();
-            document.querySelector('a#nav-home-tab').click();
+        if (event.target.classList.contains('btn-save')) {
+            // Передаём newUser только если он валиден
+            if (Object.values(newUser).every(value => value)) {
+                addUser(newUser);
+            } else {
+                console.warn('Please fill out all fields.');
+            }
         }
     });
 
     async function openEditModal(userId) {
         try {
             const response = await fetch(`/api/get-user?id=${userId}`);
-            if (!response.ok) {
+            const responseRoles = await fetch(`/api/get-all-roles`);
+
+            if (!response.ok || !responseRoles.ok) {
                 throw new Error('Error fetching user data');
             }
+
             const user = await response.json();
+            const roleList = await responseRoles.json();
+
             document.getElementById('editID').value = user.id;
             document.getElementById('editFirstName').value = user.firstName;
             document.getElementById('editLastName').value = user.lastName;
             document.getElementById('editAge').value = user.age;
             document.getElementById('editEmail').value = user.email;
-            document.getElementById('editPassword').value = user.password;
-            const editeRole = document.getElementById('editRole');
-            editeRole.innerHTML = '';
-            user.roles.forEach(role => {
+            //document.getElementById('editPassword').value = user.password;
+
+            const editRole = document.getElementById('editRole');
+            editRole.innerHTML = '';
+
+            roleList.forEach(role => {
                 const option = document.createElement('option');
                 option.value = role.id;
                 option.textContent = role.roleName;
-                editeRole.appendChild(option);
+                if (user.roles && user.roles.some(userRole => userRole.id === role.id)) {
+                    option.selected = true;
+                }
+                editRole.appendChild(option);
             });
             const editModal = new bootstrap.Modal(document.getElementById('editModal'));
             editModal.show();
@@ -427,45 +462,52 @@
 
     document.getElementById('formEditUser').addEventListener('submit', async (event)=> {
         event.preventDefault();
+
         const userId = document.getElementById('editID').value;
-        const editeUser = {
+        const editUser = {
             id: userId,
             firstName: document.getElementById('editFirstName').value,
             lastName: document.getElementById('editLastName').value,
-            age: parseInt(document.getElementById('editAge').value),
+            age: document.getElementById('editAge').value,
             email: document.getElementById('editEmail').value,
             password: document.getElementById('editPassword').value,
             roles: Array.from(document.getElementById('editRole').selectedOptions).map(option => option.value)
         };
+
         try {
             const response = await fetch('/api/edit-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(editeUser)
+                body: JSON.stringify(editUser)
             });
+
             let responseText = await response.text();
+
             console.log('Response Text:', responseText);
+
             if (!response.ok) {
                 const errorData = JSON.parse(responseText);
                 throw new Error('Failed to update user: ' + (errorData.message || 'Unknown error'));
             }
+
             const updatedUser = JSON.parse(responseText);
             console.log('User updated successfully:', updatedUser);
             await fillTableForUsers();
+
             const editModal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
             if (editModal) {
                 editModal.hide();
             }
-        } catch
-            (error) {
+
+        } catch (error) {
             console.error('Ошибка при обновлении пользователя:', error);
             await fillTableForUsers();
         }
     });
 
-    async  function openDeleteModal(userId) {
+    async function openDeleteModal(userId) {
         try {
             const response = await fetch(`/api/get-user?id=${userId}`);
             if (!response.ok) {
@@ -493,6 +535,10 @@
                 await deleteUser(userId);
                 deleteModal.hide();
             };
+            document.getElementById('modalDeleteClose').onclick = async (event) => {
+                event.preventDefault();
+                deleteModal.hide();
+            };
         } catch (error) {
             console.error('Ошибка при получении данных пользователя:', error);
         }
@@ -506,6 +552,7 @@
             if (response.ok) {
                 await fillTableForUsers();
             } else {
+                await fillTableForUsers();
                 throw new Error('Failed to delete user');
             }
         } catch (error) {

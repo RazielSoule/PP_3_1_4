@@ -24,7 +24,6 @@ public class User {
    private String lastName;
 
    @Column(name = "password")
-   @NotEmpty(message = "Enter password!")
    private String password;
 
    @Column(name = "email")
@@ -32,12 +31,10 @@ public class User {
    private String email;
 
    @Column(name = "age")
-   @NotEmpty(message = "Enter age!")
+   @Min(value = 0)
    private int age;
 
    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-   @NotEmpty(message = "Select at least 1 role")
-   @JsonManagedReference
    @JoinTable(
          name = "users_roles",
          joinColumns = @JoinColumn(name = "user_id"),
