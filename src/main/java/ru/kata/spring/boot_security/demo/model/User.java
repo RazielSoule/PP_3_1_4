@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -34,7 +33,10 @@ public class User {
    @Min(value = 0)
    private int age;
 
-   @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+   @ManyToMany(fetch = FetchType.LAZY,
+           cascade = {
+                   CascadeType.MERGE
+           })
    @JoinTable(
          name = "users_roles",
          joinColumns = @JoinColumn(name = "user_id"),

@@ -17,7 +17,11 @@ public class Role implements GrantedAuthority {
     @Column(name = "role_name")
     private String roleName;
 
-    @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToMany(fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.MERGE
+            },
+            mappedBy = "roles")
     @JsonIgnore
     private List<User> users;
 
